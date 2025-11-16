@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>SentimentFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+<div class="page-bg"></div>
+
+<div class="container">
+    <header class="header">
+        <h1>🌊 SentimentFlow</h1>
+        <p>Analiză de sentiment cu model AI & vizualizări interactive</p>
+    </header>
+
+    <main class="main-card">
+        <div class="tabs">
+            <button class="tab active" data-tab="single">📝 Analiză simplă</button>
+            <button class="tab" data-tab="comparison">📈 Comparație texte</button>
+            <button class="tab" data-tab="river">📊 Sentiment River</button>
+        </div>
+
+        <!-- 📝 ANALIZĂ SIMPLĂ (cu modelul AI) -->
+        <section id="single" class="tab-content active">
+            <div class="text-input-box">
+                <h3>Introdu textul pentru analiză</h3>
+                <textarea id="singleText" placeholder="Scrie aici textul pe care vrei să-l analizezi..."></textarea>
+            </div>
+            <button class="btn" id="singleBtn">Analizează cu modelul AI</button>
+
+            <div id="singleResult" class="result-card hidden">
+    <h3>Rezultat analiză</h3>
+
+    <div class="sentiment-line">
+        <span>Etichetă:</span>
+        <span id="singleLabel" class="sentiment-badge sentiment-neutral">–</span>
+    </div>
+
+    <div id="singleBars"></div>
+
+    <!-- 🔥 cuvintele influente din model -->
+    <p id="featureWords" class="feature-words">Cuvinte influente: –</p>
+</div>
+
+        </section>
+
+        <!-- 📈 COMPARAȚIE TEXTE (tot cu model AI) -->
+        <section id="comparison" class="tab-content">
+            <div class="comparison-grid">
+                <div class="text-input-box">
+                    <h3>Text 1</h3>
+                    <textarea id="text1" placeholder="Introdu primul text..."></textarea>
+                </div>
+                <div class="text-input-box">
+                    <h3>Text 2</h3>
+                    <textarea id="text2" placeholder="Introdu al doilea text..."></textarea>
+                </div>
+            </div>
+            <button class="btn" id="compareBtn">Compară sentimentele</button>
+
+            <div id="comparisonResults" class="results-comparison hidden">
+                <div class="result-card">
+                    <h3>Text 1</h3>
+                    <div class="sentiment-line">
+                        <span>Etichetă:</span>
+                        <span id="cmpLabel1" class="sentiment-badge sentiment-neutral">–</span>
+                    </div>
+                    <div id="cmpBars1"></div>
+                </div>
+                <div class="result-card">
+                    <h3>Text 2</h3>
+                    <div class="sentiment-line">
+                        <span>Etichetă:</span>
+                        <span id="cmpLabel2" class="sentiment-badge sentiment-neutral">–</span>
+                    </div>
+                    <div id="cmpBars2"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 📊 SENTIMENT RIVER (pe propoziții, cu model AI) -->
+        <section id="river" class="tab-content">
+    <div class="text-input-box">
+        <h3>Text pentru Sentiment River</h3>
+        <textarea id="riverText" placeholder="Introdu un text mai lung (mai multe propoziții)..."></textarea>
+    </div>
+
+    <button class="btn" id="riverBtn">Generează Sentiment River</button>
+
+    <div id="riverContainer" class="river-container hidden">
+        <h3>Evoluția sentimentelor (pozitiv / neutru / negativ)</h3>
+
+        <canvas id="riverChartCanvas" height="120"></canvas>
+
+        <h3>Detalii pe propoziții</h3>
+        <div id="riverDetails" class="river-details"></div>
+
+        <h3>Sentiment general</h3>
+        <p id="overallSentiment" class="overall-box"></p>
+    </div>
+</section>
+
+    </main>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+</body>
+
+
+</html>
