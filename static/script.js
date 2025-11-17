@@ -1,10 +1,63 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    // --------------------------------------------------------------------
+    // ============================================================
+    // 🔧 BACKGROUND UTILS
+    // ============================================================
+
+    function clearAllBackgrounds() {
+        document.body.classList.remove(
+            "bg-positive", "bg-negative", "bg-neutral",
+            "bg-split", "bg-river"
+        );
+        document.body.style.background = "#ffffff";
+    }
+
+    function colorFromLabel(label) {
+        if (label === "Pozitiv") return "#e8fff0";   // verde pastel
+        if (label === "Negativ") return "#ffe5e5";   // roșu pastel
+        return "#eef1ff";                             // albastru pastel
+    }
+
+    function setSingleBackground(label) {
+        clearAllBackgrounds();
+
+        if (label === "Pozitiv") document.body.classList.add("bg-positive");
+        else if (label === "Negativ") document.body.classList.add("bg-negative");
+        else document.body.classList.add("bg-neutral");
+    }
+
+function setComparisonBackground(label1, label2) {
+    const c1 = colorFromLabel(label1);
+    const c2 = colorFromLabel(label2);
+
+    document.body.className = "bg-compare";
+    document.body.style.background = `linear-gradient(to right, ${c1} 0%, ${c2} 100%)`;
+}
+
+
+    function setRiverBackground(avgPos, avgNeu, avgNeg) {
+        clearAllBackgrounds();
+
+        const top = colorFromLabel(
+            avgPos >= avgNeg && avgPos >= avgNeu ? "Pozitiv" :
+            avgNeg >= avgPos && avgNeg >= avgNeu ? "Negativ" :
+            "Neutru"
+        );
+
+        document.body.classList.add("bg-river");
+        document.body.style.background =
+            `linear-gradient(to bottom, ${top}, #ffffff)`;
+    }
+
+    // ============================================================
     // TAB SWITCHING
-    // --------------------------------------------------------------------
+    // ============================================================
+
     document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
+
+            clearAllBackgrounds();
+
             const target = tab.getAttribute("data-tab");
 
             document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -15,9 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // --------------------------------------------------------------------
-    // BACKEND: REAL AI
-    // --------------------------------------------------------------------
+    // ============================================================
+    // BACKEND: REAL AI REQUEST
+    // ============================================================
+
     async function analyzeWithBackend(text) {
         const res = await fetch("/analyze", {
             method: "POST",
@@ -25,26 +79,30 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ text })
         });
         return (await res.json()).sentiment;
-        // => { label, scores, features }
     }
+function resetBackground() {
+    document.body.className = "";
+    document.body.style.background = "#ffffff";
+}
 
-    // --------------------------------------------------------------------
-    // SCORE BARS
-    // --------------------------------------------------------------------
+    // ============================================================
+    // BARE CLASICE (Pozitiv / Neutru / Negativ)
+    // ============================================================
+
     function renderBars(scores, container) {
         container.innerHTML = "";
 
-        function add(label, value, css) {
+        function add(label, value, cssClass) {
             const row = document.createElement("div");
             row.className = "score-bar";
 
             row.innerHTML = `
                 <div class="score-label">
                     <span>${label}</span>
-                    <span>${value.toFixed(2)}%</span>
+                    <span>${value.toFixed(1)}%</span>
                 </div>
                 <div class="bar-container">
-                    <div class="bar-fill ${css}" style="width:${value}%"></div>
+                    <div class="bar-fill ${cssClass}" style="width:${value}%"></div>
                 </div>
             `;
 
@@ -56,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
         add("Negativ", scores.negativ, "bar-negative");
     }
 
-
     function setBadgeClass(el, label) {
         el.classList.remove("sentiment-positive", "sentiment-negative", "sentiment-neutral");
 
@@ -67,10 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
         el.textContent = label;
     }
 
+    // ============================================================
+    // ⭐ ANALIZA SIMPLĂ
+    // ============================================================
 
-    // --------------------------------------------------------------------
-    // 1) ANALIZĂ SIMPLĂ
-    // --------------------------------------------------------------------
     const singleBtn = document.getElementById("singleBtn");
     const singleText = document.getElementById("singleText");
     const singleResult = document.getElementById("singleResult");
@@ -91,26 +148,26 @@ document.addEventListener("DOMContentLoaded", () => {
             setBadgeClass(singleLabel, sentiment.label);
             renderBars(sentiment.scores, singleBars);
 
-            // ⭐ FEATURES VENITE DE LA MODEL – fără hardcodare!
             featureWords.textContent =
                 "Cuvinte influente: " + (sentiment.features.join(", ") || "N/A");
 
             singleResult.classList.remove("hidden");
-        }
-        catch (err) {
+
+            setSingleBackground(sentiment.label);
+
+        } catch (err) {
             console.error(err);
             alert("Eroare la analiză.");
-        }
-        finally {
+        } finally {
             singleBtn.disabled = false;
-            singleBtn.textContent = "Analizează";
+            singleBtn.textContent = "Analizează cu modelul AI";
         }
     });
 
+    // ============================================================
+    // ⭐ COMPARAȚIE TEXTE
+    // ============================================================
 
-    // --------------------------------------------------------------------
-    // 2) COMPARAȚIE
-    // --------------------------------------------------------------------
     const compareBtn = document.getElementById("compareBtn");
     const text1 = document.getElementById("text1");
     const text2 = document.getElementById("text2");
@@ -141,150 +198,129 @@ document.addEventListener("DOMContentLoaded", () => {
             renderBars(s2.scores, cmpBars2);
 
             cmpResults.classList.remove("hidden");
-        }
-        catch (err) {
+
+            setComparisonBackground(s1.label, s2.label);
+
+        } catch (err) {
             console.error(err);
             alert("Eroare la comparație.");
-        }
-        finally {
+        } finally {
             compareBtn.disabled = false;
-            compareBtn.textContent = "Compară";
+            compareBtn.textContent = "Compară sentimentele";
         }
     });
 
+    // ============================================================
+    // ⭐ SENTIMENT RIVER
+    // ============================================================
 
-    // ==========================
-// SENTIMENT RIVER (Chart.js)
-// ==========================
+    const riverBtn = document.getElementById("riverBtn");
+    const riverText = document.getElementById("riverText");
+    const riverContainer = document.getElementById("riverContainer");
+    const riverDetails = document.getElementById("riverDetails");
+    const overallSentiment = document.getElementById("overallSentiment");
 
-const riverBtn = document.getElementById("riverBtn");
-const riverText = document.getElementById("riverText");
-const riverContainer = document.getElementById("riverContainer");
-const riverDetails = document.getElementById("riverDetails");
-const overallSentiment = document.getElementById("overallSentiment");
+    let riverChart;
 
-let riverChart; // chart.js instance
+    riverBtn.addEventListener("click", async () => {
+        const txt = riverText.value.trim();
+        if (!txt) return alert("Introdu text!");
 
-riverBtn.addEventListener("click", async () => {
-    const txt = riverText.value.trim();
-    if (!txt) return alert("Introdu text!");
+        const sentences = txt.match(/[^.!?]+[.!?]*/g) || [txt];
+        const clean = sentences.map(s => s.trim()).filter(s => s.length > 0);
 
-    const sentences = txt.match(/[^.!?]+[.!?]*/g) || [txt];
-    const clean = sentences.map(s => s.trim()).filter(s => s.length > 0);
+        riverBtn.disabled = true;
+        riverBtn.textContent = "Analizez...";
 
-    riverBtn.disabled = true;
-    riverBtn.textContent = "Analizez...";
+        try {
+            const results = [];
 
-    try {
-        const results = [];
-
-        for (const s of clean) {
-            const sentiment = await analyzeWithBackend(s);
-            results.push({
-                text: s,
-                label: sentiment.label,
-                scores: sentiment.scores,
-                features: sentiment.features
-            });
-        }
-
-        // === Pregătim datele pentru Chart.js ===
-        const labels = clean.map((_, i) => "P" + (i + 1));
-        const pozitiv = results.map(r => r.scores.pozitiv);
-        const neutru = results.map(r => r.scores.neutru);
-        const negativ = results.map(r => r.scores.negativ);
-
-        // Dacă există deja un chart, îl distrugem
-        if (riverChart) riverChart.destroy();
-
-        const ctx = document.getElementById("riverChartCanvas").getContext("2d");
-
-        riverChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "Pozitiv",
-                        data: pozitiv,
-                        borderColor: "#16a34a",
-                        backgroundColor: "rgba(22,163,74,0.15)",
-                        tension: 0.4,
-                        borderWidth: 3
-                    },
-                    {
-                        label: "Neutru",
-                        data: neutru,
-                        borderColor: "#64748b",
-                        backgroundColor: "rgba(100,116,139,0.15)",
-                        tension: 0.4,
-                        borderWidth: 3
-                    },
-                    {
-                        label: "Negativ",
-                        data: negativ,
-                        borderColor: "#dc2626",
-                        backgroundColor: "rgba(220,38,38,0.15)",
-                        tension: 0.4,
-                        borderWidth: 3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: "bottom" }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
+            for (const s of clean) {
+                const sentiment = await analyzeWithBackend(s);
+                results.push({
+                    text: s,
+                    label: sentiment.label,
+                    scores: sentiment.scores,
+                    features: sentiment.features
+                });
             }
-        });
 
-        // === Detalii propoziții ===
-        riverDetails.innerHTML = "";
-        results.forEach((r, i) => {
-            riverDetails.innerHTML += `
-                <div class="river-item">
-                    <strong>P${i + 1}:</strong> ${r.text}<br>
-                    Etichetă: <b>${r.label}</b><br>
-                    Features: <i>${r.features.join(", ")}</i>
+            const pozitiv = results.map(r => r.scores.pozitiv);
+            const neutru = results.map(r => r.scores.neutru);
+            const negativ = results.map(r => r.scores.negativ);
+
+            if (riverChart) riverChart.destroy();
+
+            const ctx = document.getElementById("riverChartCanvas").getContext("2d");
+
+            riverChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: clean.map((_, i) => "P" + (i + 1)),
+                    datasets: [
+                        {
+                            label: "Pozitiv",
+                            data: pozitiv,
+                            borderColor: "#16a34a",
+                            backgroundColor: "rgba(22,163,74,0.2)",
+                            tension: 0.4,
+                            borderWidth: 3
+                        },
+                        {
+                            label: "Neutru",
+                            data: neutru,
+                            borderColor: "#64748b",
+                            backgroundColor: "rgba(100,116,139,0.2)",
+                            tension: 0.4,
+                            borderWidth: 3
+                        },
+                        {
+                            label: "Negativ",
+                            data: negativ,
+                            borderColor: "#dc2626",
+                            backgroundColor: "rgba(220,38,38,0.2)",
+                            tension: 0.4,
+                            borderWidth: 3
+                        }
+                    ]
+                }
+            });
+
+            riverDetails.innerHTML = results.map((r, i) => `
+                <div class="river-item ${r.label.toLowerCase()}">
+                    <strong>P${i + 1}</strong> – ${r.label}<br>
+                    <i>${r.text}</i><br>
+                    <small>Influente: ${r.features.join(", ")}</small>
                 </div>
+            `).join("");
+
+            const avgPos = pozitiv.reduce((a, b) => a + b) / pozitiv.length;
+            const avgNeg = negativ.reduce((a, b) => a + b) / negativ.length;
+            const avgNeu = neutru.reduce((a, b) => a + b) / neutru.length;
+
+            let overall = "Neutru";
+            if (avgPos >= avgNeg && avgPos >= avgNeu) overall = "Pozitiv";
+            else if (avgNeg >= avgPos && avgNeg >= avgNeu) overall = "Negativ";
+
+            overallSentiment.innerHTML = `
+                <b>${overall}</b><br>
+                Pozitiv: ${avgPos.toFixed(1)}% ·
+                Neutru: ${avgNeu.toFixed(1)}% ·
+                Negativ: ${avgNeg.toFixed(1)}%
             `;
-        });
 
-        // === Calcul sentiment general ===
-        let avgPos = pozitiv.reduce((a, b) => a + b, 0) / pozitiv.length;
-        let avgNeg = negativ.reduce((a, b) => a + b, 0) / negativ.length;
-        let avgNeu = neutru.reduce((a, b) => a + b, 0) / neutru.length;
+            riverContainer.classList.remove("hidden");
 
-        let overall = "Neutru";
-        let maxValue = Math.max(avgPos, avgNeu, avgNeg);
+            setRiverBackground(avgPos, avgNeu, avgNeg);
 
-        if (maxValue === avgPos) overall = "Pozitiv";
-        if (maxValue === avgNeg) overall = "Negativ";
-
-        overallSentiment.innerHTML = `
-            <b>${overall}</b>  
-            <br> Pozitiv: ${avgPos.toFixed(1)}%  
-            · Neutru: ${avgNeu.toFixed(1)}%  
-            · Negativ: ${avgNeg.toFixed(1)}%
-        `;
-
-        riverContainer.classList.remove("hidden");
-    }
-    catch (err) {
-        console.error(err);
-        alert("Eroare Sentiment River.");
-    }
-    finally {
-        riverBtn.disabled = false;
-        riverBtn.textContent = "Generează Sentiment River";
-    }
-});
+        } catch (err) {
+            console.error(err);
+            alert("Eroare Sentiment River.");
+        } finally {
+            riverBtn.disabled = false;
+            riverBtn.textContent = "Generează Sentiment River";
+        }
+    });
 
 
 });

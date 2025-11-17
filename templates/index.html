@@ -12,18 +12,20 @@
 
 <div class="container">
     <header class="header">
-        <h1>🌊 SentimentFlow</h1>
-        <p>Analiză de sentiment cu model AI & vizualizări interactive</p>
+<h1 class="title">SentimentFlow — AI DAG Engine</h1>
+<p class="subtitle">
+    Sistem inteligent de analiză a sentimentelor construit cu DAG, Dependency Injection și modele AI moderne.
+</p>
     </header>
 
     <main class="main-card">
         <div class="tabs">
-            <button class="tab active" data-tab="single">📝 Analiză simplă</button>
-            <button class="tab" data-tab="comparison">📈 Comparație texte</button>
-            <button class="tab" data-tab="river">📊 Sentiment River</button>
+            <button class="tab active" data-tab="single"> Analiză simplă</button>
+            <button class="tab" data-tab="comparison"> Comparație texte</button>
+            <button class="tab" data-tab="river"> Sentiment River</button>
         </div>
 
-        <!-- 📝 ANALIZĂ SIMPLĂ (cu modelul AI) -->
+        <!--  ANALIZĂ SIMPLĂ (cu modelul AI) -->
         <section id="single" class="tab-content active">
             <div class="text-input-box">
                 <h3>Introdu textul pentru analiză</h3>
@@ -41,13 +43,13 @@
 
     <div id="singleBars"></div>
 
-    <!-- 🔥 cuvintele influente din model -->
+    <!--  cuvintele influente din model -->
     <p id="featureWords" class="feature-words">Cuvinte influente: –</p>
 </div>
 
         </section>
 
-        <!-- 📈 COMPARAȚIE TEXTE (tot cu model AI) -->
+        <!--  COMPARAȚIE TEXTE (tot cu model AI) -->
         <section id="comparison" class="tab-content">
             <div class="comparison-grid">
                 <div class="text-input-box">
@@ -82,7 +84,7 @@
         </section>
 
 
-        <!-- 📊 SENTIMENT RIVER (pe propoziții, cu model AI) -->
+        <!--  SENTIMENT RIVER (pe propoziții, cu model AI) -->
         <section id="river" class="tab-content">
     <div class="text-input-box">
         <h3>Text pentru Sentiment River</h3>
